@@ -1,0 +1,17 @@
+# Copy this file to terraform.tfvars (already gitignored) and adjust before
+# running `terraform apply`. Values below intentionally include a "hostile"
+# input to exercise the sanitization logic in locals.tf.
+
+aws_region   = "us-east-1"
+project_name = "cybered-lab"
+
+students = [
+  "student-01",
+  "student-02",
+  "Alice Smith!",
+]
+
+budget_limit_usd    = 50
+budget_alert_emails = ["you@example.com"]
+
+log_retention_days = 5

@@ -1,0 +1,9 @@
+# Force LF regardless of platform for anything that gets executed inside a
+# Linux container -- a CRLF-mangled entrypoint script fails with a cryptic
+# "bad interpreter" error on the very first cold start, which is exactly
+# the kind of self-inflicted problem this file exists to prevent.
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.tf text eol=lf
+*.tfvars text eol=lf
+*.md text eol=lf

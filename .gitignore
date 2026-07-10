@@ -1,0 +1,23 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+# .terraform.lock.hcl is intentionally committed (Terraform's own
+# recommendation) so provider version selection is reproducible.
+
+# Variable files that may contain sandbox-specific values
+*.auto.tfvars
+terraform.tfvars
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

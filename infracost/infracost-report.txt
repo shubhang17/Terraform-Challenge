@@ -1,0 +1,64 @@
+Project: main
+
+ Name                                                                      Monthly Qty  Unit              Monthly Cost   
+                                                                                                                         
+ module.cache.aws_ecs_service.cache                                                                                      
+ ├─ Per GB per hour                                                                0.5  GB                       $1.62   
+ └─ Per vCPU per hour                                                             0.25  CPU                      $7.39   
+                                                                                                                         
+ module.tenant_app.aws_ecs_service.app["alice-smith-2"]                                                                  
+ ├─ Per GB per hour                                                                0.5  GB                       $1.62   
+ └─ Per vCPU per hour                                                             0.25  CPU                      $7.39   
+                                                                                                                         
+ module.tenant_app.aws_ecs_service.app["student-01-0"]                                                                   
+ ├─ Per GB per hour                                                                0.5  GB                       $1.62   
+ └─ Per vCPU per hour                                                             0.25  CPU                      $7.39   
+                                                                                                                         
+ module.tenant_app.aws_ecs_service.app["student-02-1"]                                                                   
+ ├─ Per GB per hour                                                                0.5  GB                       $1.62   
+ └─ Per vCPU per hour                                                             0.25  CPU                      $7.39   
+                                                                                                                         
+ module.observability.aws_cloudwatch_log_group.cache                                                                     
+ ├─ Data ingested                                                       Monthly cost depends on usage: $0.50 per GB      
+ ├─ Archival Storage                                                    Monthly cost depends on usage: $0.03 per GB      
+ └─ Insights queries data scanned                                       Monthly cost depends on usage: $0.005 per GB     
+                                                                                                                         
+ module.observability.aws_cloudwatch_log_group.tenant["alice-smith-2"]                                                   
+ ├─ Data ingested                                                       Monthly cost depends on usage: $0.50 per GB      
+ ├─ Archival Storage                                                    Monthly cost depends on usage: $0.03 per GB      
+ └─ Insights queries data scanned                                       Monthly cost depends on usage: $0.005 per GB     
+                                                                                                                         
+ module.observability.aws_cloudwatch_log_group.tenant["student-01-0"]                                                    
+ ├─ Data ingested                                                       Monthly cost depends on usage: $0.50 per GB      
+ ├─ Archival Storage                                                    Monthly cost depends on usage: $0.03 per GB      
+ └─ Insights queries data scanned                                       Monthly cost depends on usage: $0.005 per GB     
+                                                                                                                         
+ module.observability.aws_cloudwatch_log_group.tenant["student-02-1"]                                                    
+ ├─ Data ingested                                                       Monthly cost depends on usage: $0.50 per GB      
+ ├─ Archival Storage                                                    Monthly cost depends on usage: $0.03 per GB      
+ └─ Insights queries data scanned                                       Monthly cost depends on usage: $0.005 per GB     
+                                                                                                                         
+ module.registry.aws_ecr_repository.student["alice-smith-2"]                                                             
+ └─ Storage                                                             Monthly cost depends on usage: $0.10 per GB      
+                                                                                                                         
+ module.registry.aws_ecr_repository.student["student-01-0"]                                                              
+ └─ Storage                                                             Monthly cost depends on usage: $0.10 per GB      
+                                                                                                                         
+ module.registry.aws_ecr_repository.student["student-02-1"]                                                              
+ └─ Storage                                                             Monthly cost depends on usage: $0.10 per GB      
+                                                                                                                         
+ OVERALL TOTAL                                                                                                 $36.04 
+
+*Usage costs can be estimated by updating Infracost Cloud settings, see docs for other options.
+
+──────────────────────────────────
+62 cloud resources were detected:
+∙ 11 were estimated
+∙ 50 were free
+∙ 1 is not supported yet, rerun with --show-skipped to see details
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ Project                                            ┃ Baseline cost ┃ Usage cost* ┃ Total cost ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━╋━━━━━━━━━━━━┫
+┃ main                                               ┃           $36 ┃           - ┃        $36 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━┻━━━━━━━━━━━━┛
