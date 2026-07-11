@@ -16,6 +16,9 @@ override.tf.json
 *.auto.tfvars
 terraform.tfvars
 
+# Local backend override (copy backend.hcl.example if customizing)
+backend.hcl
+
 # OS / editor
 .DS_Store
 Thumbs.db

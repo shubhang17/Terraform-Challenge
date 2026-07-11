@@ -16,10 +16,7 @@ terraform {
     }
   }
 
-  # Local backend on purpose: this is a short-lived, single-operator take-home
-  # exercise, not a long-running shared environment. A remote backend
-  # (S3 + DynamoDB lock table) would add infrastructure the grader has to
-  # provision before they can even run `terraform init`, which works against
-  # the "must execute flawlessly on the first run" constraint. See
-  # docs/DECISIONS.md for the full rationale.
+  # Pre-created by CyberEd — configure via backend.hcl or -backend-config flags.
+  # See docs/DEPLOYMENT.md and backend.hcl.example.
+  backend "s3" {}
 }

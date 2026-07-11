@@ -74,27 +74,29 @@ short-lived lab. Tasks instead run in public subnets with `assign_public_ip
 subnet privacy — which is the actual mechanism the brief asks for
 ("distinct security groups with explicit ingress/egress rules").
 
-## 6. Local Terraform state, not a remote backend
+## 6. Remote Terraform state (CyberEd pre-created backend)
 
-A remote backend (S3 + DynamoDB lock table) is good practice for long-lived,
-multi-operator infrastructure, but this is a single-operator, short-lived
-take-home exercise. Provisioning a remote backend before `terraform init`
-can even run adds a manual bootstrapping step that works directly against
-"must execute flawlessly on the first run" — if that bootstrap fails or is
-misconfigured, nothing else can proceed. Local state, excluded from git via
-`.gitignore`, is the simpler and more reliable choice for this context.
+The initial submission used local state for simplicity before sandbox
+parameters were issued. The **Candidate Environment Sheet** provides a
+pre-created S3 backend — we must use it and must **not** recreate the
+bucket. Configuration: `backend "s3" {}` in `versions.tf` plus
+`backend.hcl` (from `backend.hcl.example`).
 
-## 7. Account-wide AWS Budget instead of tag-scoped
+## 7. AWS Budget with pre-created SNS topic
 
-`aws_budgets_budget` supports filtering by cost-allocation tag, but
-user-defined tags (including our `Project` tag) must first be *activated*
-for cost allocation from the Billing console — a manual, console-only,
-one-time step. That directly conflicts with "no direct console access."
-Since the assessment sandbox is expected to be dedicated to this exercise,
-an account-wide $50 cap is functionally equivalent without depending on a
-step that cannot be automated via Terraform.
+Budget is named `cybered-candidate-003-hard-cap` and sends alerts to the
+sandbox SNS topic at **50%, 80%, and 100%** (actual + forecasted at 100%).
+Budgets alert only — they are **not** a hard stop; tear down with
+`terraform destroy` when finished.
 
-## 8. `local-exec` for image build/push, not the Docker Terraform provider
+## 8. Restricted terminal ingress (authorized user CIDR)
+
+The sandbox requires inbound access to student desktops be locked to the
+**authorized user** only. Tenant security groups use `allowed_ingress_cidr`
+(from `terraform.tfvars`) instead of `0.0.0.0/0`. Set this to your public
+IP/32 before `terraform apply`.
+
+## 9. `local-exec` for image build/push, not the Docker Terraform provider
 
 The `kreuzwerker/docker` Terraform provider can build and push images
 natively, which is more "purely Terraform" — but its registry-auth
@@ -107,7 +109,7 @@ running `terraform apply`, which is a safe assumption for a DevOps
 evaluation lab terminal — and it's called out explicitly as a prerequisite
 in [DEPLOYMENT.md](./DEPLOYMENT.md).
 
-## 9. Cache purpose: heartbeat registry, not a generic demo key
+## 10. Cache purpose: heartbeat registry, not a generic demo key
 
 Per CyberEd's clarification, the goal was "how caching can assist," not a
 maximally sophisticated cache integration. A per-student heartbeat key
@@ -119,7 +121,7 @@ stop inactive student environments) — tying the cache requirement back into
 the assessment's other stated goal of cost-awareness, rather than treating
 it as an isolated checkbox.
 
-## 10. Known simplifications (not hidden, deliberately out of scope)
+## 11. Known simplifications (not hidden, deliberately out of scope)
 
 - `TTYD_PASSWORD` is passed as a plain environment variable rather than via
   Secrets Manager/SSM Parameter Store. For a short-lived lab exposing a

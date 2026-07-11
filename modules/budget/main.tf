@@ -1,11 +1,6 @@
-# Account-wide budget rather than a tag-scoped one on purpose: AWS Budgets
-# can filter by cost-allocation tag, but user-defined tags (like our
-# Project tag) must first be *activated* for cost allocation from the
-# Billing console -- a manual, one-time, console-only step that would
-# contradict "no direct console access" and "must execute flawlessly on
-# the first run." Given this is expected to be a dedicated sandbox account
-# for the assessment, an account-wide cap is functionally equivalent and
-# doesn't depend on a step we cannot automate. See docs/DECISIONS.md.
+# Budget named per sandbox rules (cybered-candidate-003-*). Alerts route to
+# the pre-created SNS topic at 50/80/100% — budgets are not a hard stop,
+# so tear down promptly when finished (terraform destroy).
 resource "aws_budgets_budget" "hard_cap" {
   name         = "${var.project_name}-hard-cap"
   budget_type  = "COST"
@@ -14,18 +9,19 @@ resource "aws_budgets_budget" "hard_cap" {
   time_unit    = "MONTHLY"
 
   dynamic "notification" {
-    for_each = length(var.budget_alert_emails) > 0 ? [
+    for_each = var.budget_sns_topic_arn != "" ? [
+      { threshold = 50, type = "ACTUAL" },
       { threshold = 80, type = "ACTUAL" },
       { threshold = 100, type = "ACTUAL" },
       { threshold = 100, type = "FORECASTED" },
     ] : []
 
     content {
-      comparison_operator        = "GREATER_THAN"
-      threshold                  = notification.value.threshold
-      threshold_type             = "PERCENTAGE"
-      notification_type          = notification.value.type
-      subscriber_email_addresses = var.budget_alert_emails
+      comparison_operator       = "GREATER_THAN"
+      threshold                 = notification.value.threshold
+      threshold_type            = "PERCENTAGE"
+      notification_type         = notification.value.type
+      subscriber_sns_topic_arns = [var.budget_sns_topic_arn]
     }
   }
 }

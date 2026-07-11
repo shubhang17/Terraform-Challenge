@@ -128,19 +128,18 @@ resource "aws_security_group" "cache" {
   }
 }
 
-# Inbound: allow the terminal UI to be reached from outside the VPC. This is
-# an external access decision, unrelated to tenant-to-tenant isolation --
-# ttyd is protected by per-student basic-auth credentials generated in the
-# tenant_app module.
+# Inbound: terminal access restricted to the authorized user's IP/CIDR per
+# the candidate environment sheet (not 0.0.0.0/0). ttyd still requires
+# per-student basic-auth credentials generated in tenant_app.
 resource "aws_vpc_security_group_ingress_rule" "tenant_app_ingress" {
   for_each = var.students
 
   security_group_id = aws_security_group.tenant[each.key].id
-  description       = "Application/terminal access (protected by per-student basic auth)"
+  description       = "Application/terminal access for authorized user only"
   from_port         = var.app_port
   to_port           = var.app_port
   ip_protocol       = "tcp"
-  cidr_ipv4         = "0.0.0.0/0"
+  cidr_ipv4         = var.allowed_ingress_cidr
 }
 
 # Outbound: the ONLY east-west rule any tenant SG has is to the cache SG,

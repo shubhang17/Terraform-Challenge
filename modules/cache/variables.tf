@@ -45,3 +45,11 @@ variable "log_group_name" {
 variable "log_group_arn" {
   type = string
 }
+
+variable "iam_role_path" {
+  type = string
+}
+
+variable "iam_permissions_boundary_arn" {
+  type = string
+}

@@ -19,7 +19,9 @@ resource "random_password" "ttyd" {
 resource "aws_iam_role" "task_execution" {
   for_each = var.students
 
-  name = "${var.project_name}-${each.value.sanitized_id}-execution"
+  name                 = "${var.project_name}-${each.value.sanitized_id}-execution"
+  path                 = var.iam_role_path
+  permissions_boundary = var.iam_permissions_boundary_arn
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

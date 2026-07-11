@@ -8,7 +8,7 @@ locals {
   # triggered when the mock application source actually changes.
   source_files       = fileset(var.app_source_path, "**")
   build_trigger_hash = md5(join("", [for f in local.source_files : filemd5("${var.app_source_path}/${f}")]))
-  local_image_tag    = "cybered-lab-app:${local.build_trigger_hash}"
+  local_image_tag    = "${var.project_name}-app:${local.build_trigger_hash}"
 }
 
 # --- Per-student image isolation ---------------------------------------------

@@ -23,3 +23,8 @@ variable "app_port" {
 variable "cache_port" {
   type = number
 }
+
+variable "allowed_ingress_cidr" {
+  description = "CIDR allowed inbound to student terminal port (authorized user only)."
+  type        = string
+}

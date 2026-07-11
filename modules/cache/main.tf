@@ -11,7 +11,9 @@
 #     provisioning a separate managed-service subsystem.
 # See docs/DECISIONS.md for the full trade-off writeup.
 resource "aws_iam_role" "cache_execution" {
-  name = "${var.project_name}-cache-execution"
+  name                 = "${var.project_name}-cache-execution"
+  path                 = var.iam_role_path
+  permissions_boundary = var.iam_permissions_boundary_arn
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

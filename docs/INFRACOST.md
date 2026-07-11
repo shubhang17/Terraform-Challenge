@@ -1,19 +1,19 @@
 # Pre-Deployment Cost Projection
 
-Generated with the Infracost CLI against this repository's actual Terraform
-code (not hand-estimated) using the sample roster in
-`terraform.tfvars.example` (`student-01`, `student-02`, `"Alice Smith!"`).
+Generated with the Infracost CLI against this repository's Terraform code
+using the sample roster in `terraform.tfvars.example`.
 
-Raw output: [`infracost/infracost-report.txt`](../infracost/infracost-report.txt)
-(human-readable) and [`infracost/infracost.json`](../infracost/infracost.json)
-(machine-readable, e.g. for CI cost-diffing on future PRs).
-
-Regenerate at any time with:
+**Note:** The committed report under `infracost/` was generated before the
+Candidate Environment Sheet was issued (default region was `us-east-1`).
+Re-run for **`ap-south-1`** before final submission:
 
 ```bash
+# after setting terraform.tfvars (region ap-south-1, project_name cybered-candidate-003)
 infracost breakdown --path . --format json --out-file infracost/infracost.json
 infracost output --path infracost/infracost.json --format table --out-file infracost/infracost-report.txt
 ```
+
+Fargate pricing in Mumbai is broadly similar; expect the same order of magnitude (~$9/task/month compute).
 
 ## Result
 

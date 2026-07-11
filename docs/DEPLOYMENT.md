@@ -2,84 +2,113 @@
 
 ## Prerequisites
 
-Available on the machine that runs `terraform apply` (not in AWS itself):
+| Tool | Why |
+| --- | --- |
+| Terraform >= 1.7 | Provisions everything in this repo |
+| AWS CLI | Assume candidate role + ECR login during image push |
+| Docker (daemon running) | Builds and pushes the mock application image |
+| Infracost (optional) | Regenerates cost report for `ap-south-1` |
 
-| Tool                  | Why                                                     |
-| --------------------- | -------------------------------------------------------- |
-| Terraform >= 1.7       | Provisions everything in this repo                       |
-| AWS CLI, configured    | `aws ecr get-login-password` during the image push step  |
-| Docker, daemon running | Builds and pushes the mock application image             |
-| Infracost (optional)   | Regenerates the cost report in `infracost/`               |
+**Sandbox constraints (candidate-003):**
 
-AWS credentials need permissions across: VPC/EC2 networking, ECS, ECR, IAM,
-CloudWatch Logs, Service Discovery (Cloud Map), and Budgets.
+- Region: **`ap-south-1` only**
+- Resource prefix: **`cybered-candidate-003`**
+- No NAT Gateway, no ALB/NLB
+- IAM roles: path `/cybered-assessment/candidate-003/`, permissions boundary attached
+- Remote state: **pre-created S3 bucket — do not recreate**
 
-## 1. Configure inputs
+Credentials are in your **Candidate Environment Sheet** (confidential). Never commit them.
 
-```bash
-cp terraform.tfvars.example terraform.tfvars
+---
+
+## 1. Configure AWS profile (launcher user)
+
+Use values from your environment sheet:
+
+```powershell
+aws configure set aws_access_key_id     <ACCESS_KEY> --profile cybered-user
+aws configure set aws_secret_access_key <SECRET_KEY> --profile cybered-user
+aws configure set region ap-south-1 --profile cybered-user
 ```
 
-Edit `terraform.tfvars` — at minimum, set `students` to the actual roster
-for this session. Everything else has a working default.
+## 2. Assume the candidate role (required before Terraform)
 
-## 2. Initialize
+Sessions last **4 hours** — re-run when expired.
 
-```bash
-terraform init
+**PowerShell:**
+
+```powershell
+.\scripts\assume-role.ps1
 ```
 
-Downloads the `aws`, `random`, and `null` providers. No AWS credentials are
-required for this step.
+**Or manually:**
 
-## 3. Plan
+```powershell
+$session = aws sts assume-role `
+  --role-arn arn:aws:iam::150105760360:role/CyberEdAssessmentCandidate-candidate-003 `
+  --role-session-name cybered-build `
+  --external-id cybered-candidate-003 `
+  --profile cybered-user `
+  --output json | ConvertFrom-Json
 
-```bash
+$env:AWS_ACCESS_KEY_ID     = $session.Credentials.AccessKeyId
+$env:AWS_SECRET_ACCESS_KEY = $session.Credentials.SecretAccessKey
+$env:AWS_SESSION_TOKEN     = $session.Credentials.SessionToken
+$env:AWS_DEFAULT_REGION    = "ap-south-1"
+```
+
+## 3. Configure Terraform inputs
+
+```powershell
+Copy-Item terraform.tfvars.example terraform.tfvars
+Copy-Item backend.hcl.example backend.hcl
+```
+
+Edit `terraform.tfvars`:
+
+- Set `students` to the roster for this session
+- Set `allowed_ingress_cidr` to **your public IP/32** (required by sandbox rules)
+
+Find your IP: `curl -s https://checkip.amazonaws.com`
+
+## 4. Initialize (remote backend)
+
+```powershell
+terraform init -backend-config=backend.hcl
+```
+
+Do **not** create the state bucket — it already exists.
+
+## 5. Plan
+
+```powershell
 terraform plan -out=tfplan
 ```
 
-Review the plan. Expect to see, per student: one subnet, one security
-group (+ several security group rule resources), one ECR repository, one
-IAM role + policy, one CloudWatch log group, one ECS task definition, and
-one ECS service — plus the shared VPC/cluster/cache/budget resources once.
+## 6. Apply
 
-## 4. Apply
-
-```bash
+```powershell
 terraform apply tfplan
 ```
 
-This is also the step that builds and pushes the application image (via
-`local-exec` inside the `registry` module) — expect real Docker build/push
-output interleaved with Terraform's own resource-creation output. The first
-apply will take longer than subsequent ones because the base image layers
-have to be pulled before the build can run.
+Image build/push runs via `local-exec` in the registry module (Docker + `aws ecr get-login-password`).
 
-## 5. Verify
+## 7. Verify
 
-```bash
+```powershell
 terraform output ecr_repository_urls
 terraform output cache_host
-terraform output -json ttyd_credentials   # sensitive; see below
+terraform output -json ttyd_credentials
 ```
 
-To find a specific student's terminal, see
-[RUNBOOK.md — Accessing a student terminal](./RUNBOOK.md#accessing-a-student-terminal).
+See [RUNBOOK.md](./RUNBOOK.md) for accessing a student terminal.
 
-## 6. Tear down
+## 8. Tear down (required)
 
-```bash
+Assessment end: **2026-07-13T23:59:59Z**. CyberEd verifies cleanup independently.
+
+```powershell
 terraform destroy
 ```
 
-There is nothing in this configuration with `prevent_destroy`, no retained
-ECR images beyond the lifecycle policy's short window, and no stateful
-managed service (deliberately avoided ElastiCache for this reason — see
-[DECISIONS.md](./DECISIONS.md)). A single `terraform destroy` should remove
-everything created by `apply`.
-
-If it doesn't (e.g. an ECS service still has running tasks and refuses to
-delete promptly), re-run `terraform destroy` once — ECS occasionally needs a
-second pass to fully drain a service before its underlying resources can be
-removed. This is standard ECS behavior, not an orphaned-resource bug in this
-configuration.
+Re-run once if ECS services need extra time to drain.

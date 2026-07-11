@@ -1,13 +1,13 @@
 variable "aws_region" {
-  description = "AWS region to deploy the multi-tenant lab into."
+  description = "AWS region — must be ap-south-1 per the candidate environment sheet."
   type        = string
-  default     = "us-east-1"
+  default     = "ap-south-1"
 }
 
 variable "project_name" {
-  description = "Short slug used to prefix/tag every resource this configuration creates."
+  description = "Required resource prefix for every resource this configuration creates."
   type        = string
-  default     = "cybered-lab"
+  default     = "cybered-candidate-003"
 }
 
 variable "students" {
@@ -78,10 +78,27 @@ variable "budget_limit_usd" {
   default     = 50
 }
 
-variable "budget_alert_emails" {
-  description = "Email addresses that receive AWS Budgets notifications as spend approaches/exceeds the cap."
-  type        = list(string)
-  default     = []
+variable "budget_sns_topic_arn" {
+  description = "Pre-created SNS topic for budget alerts (reference only — do not modify the topic itself)."
+  type        = string
+  default     = "arn:aws:sns:ap-south-1:150105760360:cybered-assessment-budget-alerts"
+}
+
+variable "allowed_ingress_cidr" {
+  description = "CIDR allowed to reach student terminals on app_port (your public IP as x.x.x.x/32)."
+  type        = string
+}
+
+variable "iam_role_path" {
+  description = "Required IAM path for every role created in the sandbox."
+  type        = string
+  default     = "/cybered-assessment/candidate-003/"
+}
+
+variable "iam_permissions_boundary_arn" {
+  description = "Permissions boundary that must be attached to every IAM role created."
+  type        = string
+  default     = "arn:aws:iam::150105760360:policy/CyberEdAssessmentBoundary-candidate-003"
 }
 
 variable "app_source_path" {

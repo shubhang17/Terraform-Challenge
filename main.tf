@@ -18,11 +18,12 @@ resource "aws_ecs_cluster" "lab" {
 module "network" {
   source = "./modules/network"
 
-  project_name = var.project_name
-  students     = local.students
-  vpc_cidr     = var.vpc_cidr
-  app_port     = var.app_port
-  cache_port   = var.cache_port
+  project_name         = var.project_name
+  students             = local.students
+  vpc_cidr             = var.vpc_cidr
+  app_port             = var.app_port
+  cache_port           = var.cache_port
+  allowed_ingress_cidr = var.allowed_ingress_cidr
 }
 
 module "registry" {
@@ -57,6 +58,8 @@ module "cache" {
   container_memory                 = var.cache_container_memory
   log_group_name                   = module.observability.cache_log_group_name
   log_group_arn                    = module.observability.cache_log_group_arn
+  iam_role_path                    = var.iam_role_path
+  iam_permissions_boundary_arn     = var.iam_permissions_boundary_arn
 }
 
 # depends_on the whole registry + cache modules (not just individual
@@ -65,22 +68,24 @@ module "cache" {
 module "tenant_app" {
   source = "./modules/tenant_app"
 
-  project_name              = var.project_name
-  aws_region                = var.aws_region
-  students                  = local.students
-  cluster_id                = aws_ecs_cluster.lab.id
-  tenant_subnet_ids         = module.network.tenant_subnet_ids
-  tenant_security_group_ids = module.network.tenant_security_group_ids
-  repository_urls           = module.registry.repository_urls
-  repository_arns           = module.registry.repository_arns
-  tenant_log_group_names    = module.observability.tenant_log_group_names
-  tenant_log_group_arns     = module.observability.tenant_log_group_arns
-  image_tag                 = var.image_tag
-  app_port                  = var.app_port
-  cache_host                = module.cache.cache_host
-  cache_port                = var.cache_port
-  container_cpu             = var.app_container_cpu
-  container_memory          = var.app_container_memory
+  project_name                 = var.project_name
+  aws_region                   = var.aws_region
+  students                     = local.students
+  cluster_id                   = aws_ecs_cluster.lab.id
+  tenant_subnet_ids            = module.network.tenant_subnet_ids
+  tenant_security_group_ids    = module.network.tenant_security_group_ids
+  repository_urls              = module.registry.repository_urls
+  repository_arns              = module.registry.repository_arns
+  tenant_log_group_names       = module.observability.tenant_log_group_names
+  tenant_log_group_arns        = module.observability.tenant_log_group_arns
+  image_tag                    = var.image_tag
+  app_port                     = var.app_port
+  cache_host                   = module.cache.cache_host
+  cache_port                   = var.cache_port
+  container_cpu                = var.app_container_cpu
+  container_memory             = var.app_container_memory
+  iam_role_path                = var.iam_role_path
+  iam_permissions_boundary_arn = var.iam_permissions_boundary_arn
 
   depends_on = [module.registry, module.cache]
 }
@@ -88,7 +93,7 @@ module "tenant_app" {
 module "budget" {
   source = "./modules/budget"
 
-  project_name        = var.project_name
-  budget_limit_usd    = var.budget_limit_usd
-  budget_alert_emails = var.budget_alert_emails
+  project_name         = var.project_name
+  budget_limit_usd     = var.budget_limit_usd
+  budget_sns_topic_arn = var.budget_sns_topic_arn
 }

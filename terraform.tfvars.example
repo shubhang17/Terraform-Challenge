@@ -1,9 +1,8 @@
 # Copy this file to terraform.tfvars (already gitignored) and adjust before
-# running `terraform apply`. Values below intentionally include a "hostile"
-# input to exercise the sanitization logic in locals.tf.
+# running `terraform apply`. Set allowed_ingress_cidr to YOUR public IP/32.
 
-aws_region   = "us-east-1"
-project_name = "cybered-lab"
+aws_region   = "ap-south-1"
+project_name = "cybered-candidate-003"
 
 students = [
   "student-01",
@@ -11,7 +10,10 @@ students = [
   "Alice Smith!",
 ]
 
-budget_limit_usd    = 50
-budget_alert_emails = ["you@example.com"]
+# Replace with your public IP, e.g. "203.0.113.10/32"
+allowed_ingress_cidr = "0.0.0.0/32"
+
+budget_limit_usd = 50
+# budget_sns_topic_arn uses the default from variables.tf (CyberEd pre-created topic)
 
 log_retention_days = 5

@@ -7,9 +7,9 @@ in front of them — see [DECISIONS.md](./DECISIONS.md), item 10), so find
 the current public IP per session:
 
 ```bash
-CLUSTER=$(terraform output -raw project_name 2>/dev/null || echo "cybered-lab")-cluster
+CLUSTER=$(terraform output -raw project_name 2>/dev/null || echo "cybered-candidate-003")-cluster
 TASK_ARN=$(aws ecs list-tasks --cluster "$CLUSTER" \
-  --service-name cybered-lab-<student-id> --query 'taskArns[0]' --output text)
+  --service-name cybered-candidate-003-<student-id> --query 'taskArns[0]' --output text)
 
 ENI_ID=$(aws ecs describe-tasks --cluster "$CLUSTER" --tasks "$TASK_ARN" \
   --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
@@ -32,22 +32,22 @@ terraform output -json ttyd_credentials | jq '."<student-id>"'
    you need logs at all:
 
    ```bash
-   aws ecs describe-services --cluster cybered-lab-cluster \
-     --services cybered-lab-<student-id> \
+   aws ecs describe-services --cluster cybered-candidate-003-cluster \
+     --services cybered-candidate-003-<student-id> \
      --query 'services[0].events[0:10]'
    ```
 
 2. **Pull the isolated log stream for that student.** Each student has
-   their own log group (`/ecs/cybered-lab/<student-id>`), and each task run
+   their own log group (`/ecs/cybered-candidate-003/<student-id>`), and each task run
    creates its own stream prefixed with the student ID:
 
    ```bash
    aws logs describe-log-streams \
-     --log-group-name /ecs/cybered-lab/<student-id> \
+     --log-group-name /ecs/cybered-candidate-003/<student-id> \
      --order-by LastEventTime --descending --limit 1
 
    aws logs get-log-events \
-     --log-group-name /ecs/cybered-lab/<student-id> \
+     --log-group-name /ecs/cybered-candidate-003/<student-id> \
      --log-stream-name <stream-name-from-above>
    ```
 
@@ -76,12 +76,12 @@ container's health check failing repeatedly, or the log stream stuck on
 1. **Confirm the cache task itself is healthy:**
 
    ```bash
-   aws ecs describe-services --cluster cybered-lab-cluster \
-     --services cybered-lab-cache \
+   aws ecs describe-services --cluster cybered-candidate-003-cluster \
+     --services cybered-candidate-003-cache \
      --query 'services[0].{running:runningCount,desired:desiredCount}'
    ```
 
-2. **Check the cache's own log group** (`/ecs/cybered-lab/cache`) for
+2. **Check the cache's own log group** (`/ecs/cybered-candidate-003/cache`) for
    Redis startup errors — same commands as above, different log group.
 
 3. **Confirm service discovery actually has a record.** If the cache task
@@ -113,11 +113,11 @@ container's health check failing repeatedly, or the log stream stuck on
 After `terraform destroy` completes, confirm nothing was left behind:
 
 ```bash
-aws ecs list-clusters --query 'clusterArns[?contains(@, `cybered-lab`)]'
-aws ecr describe-repositories --query 'repositories[?starts_with(repositoryName, `cybered-lab`)]'
-aws logs describe-log-groups --log-group-name-prefix /ecs/cybered-lab
+aws ecs list-clusters --query 'clusterArns[?contains(@, `cybered-candidate-003`)]'
+aws ecr describe-repositories --query 'repositories[?starts_with(repositoryName, `cybered-candidate-003`)]'
+aws logs describe-log-groups --log-group-name-prefix /ecs/cybered-candidate-003
 aws budgets describe-budgets --account-id <account-id> \
-  --query 'Budgets[?starts_with(BudgetName, `cybered-lab`)]'
+  --query 'Budgets[?starts_with(BudgetName, `cybered-candidate-003`)]'
 ```
 
 All four should return empty. If the ECR check still shows a repository,
